@@ -24,4 +24,4 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Start the app using the Render-provided PORT
-CMD ["java", "-jar", "app.jar", "--server.port=$PORT"]
+CMD ["java", "-jar", "app.jar", "--server.port=$8080"]
