@@ -1,14 +1,27 @@
-# Use OpenJDK 17
-FROM openjdk:17-jdk-alpine
-
-# Set working directory inside container
+# -----------------------------
+# Stage 1: Build the Spring Boot jar
+# -----------------------------
+FROM maven:3.9.2-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy the built jar file into the container
-COPY target/*.jar app.jar
+# Copy Maven configuration and source code
+COPY pom.xml .
+COPY src ./src
 
-# Expose port for Render
+# Build the jar, skip tests for faster build
+RUN mvn clean package -DskipTests
+
+# -----------------------------
+# Stage 2: Run the Spring Boot app
+# -----------------------------
+FROM openjdk:17-jdk-alpine
+WORKDIR /app
+
+# Copy the built jar from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Expose port (Render assigns PORT automatically)
 EXPOSE 8080
 
-# Run the jar file
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Start the app using the Render-provided PORT
+CMD ["java", "-jar", "app.jar", "--server.port=$PORT"]
